@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#E74C3C">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="番茄钟">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="manifest" href="manifest.json">
+  <title>🍅 番茄钟</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- ========== 主容器 ========== -->
+  <div id="app">
+    <!-- 顶栏 -->
+    <header>
+      <h1>🍅 番茄钟</h1>
+      <div class="header-actions">
+        <button class="btn-icon" id="helpBtn" title="使用说明">❓</button>
+        <button class="btn-icon" id="saveBtn" title="保存预设">💾</button>
+        <button class="btn-icon" id="loadBtn" title="加载预设">📂</button>
+      </div>
+    </header>
+
+    <!-- 说明条 -->
+    <div class="info-bar">
+      <span>👇 点击时段可选中 · 编辑时长后点 ▶ 开始</span>
+    </div>
+
+    <!-- 预设列表 -->
+    <section class="preset-section">
+      <div class="section-title">
+        <span class="title-text">⏱ 计时序列</span>
+        <span class="title-hint">从上到下依次执行</span>
+      </div>
+      <div id="presetList" class="preset-list"></div>
+      <button class="btn-add" id="addBtn">＋ 添加新时段</button>
+    </section>
+
+    <!-- 计时器 -->
+    <section class="timer-section">
+      <div id="phaseLabel" class="phase-label">🍅 工作中</div>
+      <div id="presetName" class="preset-name">番茄 1</div>
+      <div id="countdown" class="countdown">25:00</div>
+      <div class="progress-wrap">
+        <div class="progress-bar">
+          <div id="progress" class="progress-fill" style="width:100%"></div>
+        </div>
+        <div id="progressText" class="progress-text">第 1 / 4 段 · 总剩余 1:10:00</div>
+      </div>
+    </section>
+
+    <!-- 控制按钮 -->
+    <section class="controls">
+      <div class="btn-row">
+        <button id="startBtn" class="btn-start">▶ 开始</button>
+        <button id="pauseBtn" class="btn-pause" disabled>⏸ 暂停</button>
+        <button id="resetBtn" class="btn-reset">↺ 重置</button>
+      </div>
+      <div class="options-row">
+        <label class="opt"><input type="checkbox" id="autoNextCb" checked> 自动下一段</label>
+        <label class="opt"><input type="checkbox" id="loopCb"> 循环</label>
+        <span class="opt sound-opt">
+          <label><input type="checkbox" id="soundCb" checked> 提示音</label>
+          <select id="soundSelect" class="sound-select"></select>
+        </span>
+        <button id="pipBtn" class="btn-pip" disabled>📌 悬浮窗</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========== 全屏提醒层 ========== -->
+  <div id="alertOverlay" class="alert-overlay hidden">
+    <div class="alert-box">
+      <div class="alert-icon">⏰</div>
+      <div class="alert-title">时间到！</div>
+      <div id="alertNext" class="alert-next">下一段：☕ 休息 5:00</div>
+      <div id="alertHint" class="alert-hint pulse">点击屏幕进入下一阶段</div>
+    </div>
+  </div>
+
+  <!-- ========== 画中画悬浮窗（隐藏元素） ========== -->
+  <canvas id="pipCanvas" width="400" height="140" style="display:none"></canvas>
+  <video id="pipVideo" style="display:none" playsinline></video>
+
+  <!-- ========== 帮助弹窗 ========== -->
+  <div id="helpOverlay" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h2>📖 使用说明</h2>
+      <div class="modal-body">
+        <p><b>编辑序列：</b>点击时段可选中，右侧 ± 按钮调时长，点击类型按钮切换 🍅工作 / ☕休息</p>
+        <p><b>开始计时：</b>编辑好序列后点 ▶ 开始，按顺序执行每个时段</p>
+        <p><b>提示音：</b>下拉选择提示音（标注时长），计时结束循环播放，点击屏幕关闭</p>
+        <p><b>保存/加载：</b>点 💾 保存当前序列到本地，📂 加载已保存的配置</p>
+        <p><b>迷你悬浮窗：</b>计时开始后点「📌 悬浮窗」→ 计时器缩成画中画浮窗，可悬停在其他 app 上方继续显示倒计时</p>
+        <p><b>添加到桌面：</b>浏览器菜单 →「添加到主屏幕」→ 像 App 一样使用</p>
+        <p style="color:#808090;font-size:12px;">🍅 专注 25 分钟 + ☕ 休息 5 分钟 = 一个番茄</p>
+      </div>
+      <button class="btn-close" id="helpClose">关闭</button>
+    </div>
+  </div>
+
+  <!-- ========== 保存弹窗 ========== -->
+  <div id="saveOverlay" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h2>💾 保存预设</h2>
+      <input type="text" id="saveNameInput" class="modal-input"
+             placeholder="输入配置名称…" maxlength="30">
+      <div class="modal-actions">
+        <button class="btn-close" id="saveCancel">取消</button>
+        <button class="btn-confirm" id="saveConfirm">确认保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 加载弹窗 ========== -->
+  <div id="loadOverlay" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h2>📂 加载预设</h2>
+      <div id="loadList" class="load-list"></div>
+      <button class="btn-close" id="loadClose">关闭</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

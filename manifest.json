@@ -1,0 +1,24 @@
+{
+  "name": "番茄钟 - 专注计时器",
+  "short_name": "番茄钟",
+  "description": "高效番茄工作法计时器，支持工作/休息序列、提示音选择和圆角图标",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1E1E2E",
+  "theme_color": "#E74C3C",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
